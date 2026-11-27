@@ -27,13 +27,12 @@ export class StallController {
   };
 
   create = async (req: Request, res: Response): Promise<void> => {
-    const actor = getUser(req);
-    const input = getValidated<CreateStallInput>(res, 'body');
-    const data = await this.stallService.create(input, actor.id);
+  const actor = getUser(req);
+  const input = getValidated<CreateStallInput>(res, 'body');
+  const data = await this.stallService.create(input, actor);
 
-    res.status(201).json({ status: 'success', data });
-  };
-
+  res.status(201).json({ status: 'success', data });
+};
   update = async (req: Request, res: Response): Promise<void> => {
     const user = getUser(req);
     const params = getValidated<IdParam>(res, 'params');

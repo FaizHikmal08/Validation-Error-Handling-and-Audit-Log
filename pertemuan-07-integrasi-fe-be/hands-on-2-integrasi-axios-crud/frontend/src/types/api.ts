@@ -69,6 +69,7 @@ export interface AuditLog {
   id: number;
   userId: number;
   userName: string;
+  userEmail: string;
   action: string;
   targetTable: string;
   targetId: number;
@@ -76,6 +77,28 @@ export interface AuditLog {
   createdAt: string | null;
 }
 
+export interface AuditLogPagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface AuditLogListData {
+  items: AuditLog[];
+  pagination: AuditLogPagination;
+}
+
+export interface AuditLogQuery {
+  page?: number;
+  pageSize?: number;
+  action?: string;
+  targetTable?: string;
+  targetId?: number;
+  userId?: number;
+  from?: string;
+  to?: string;
+}
 export interface ApiResponse<T> {
   status: 'success';
   data: T;
@@ -114,7 +137,7 @@ export interface StallQuery {
 }
 
 export interface StallInput {
-  ownerId: number;
+  ownerId?: number;
   name: string;
   category?: string | null;
   location?: string | null;

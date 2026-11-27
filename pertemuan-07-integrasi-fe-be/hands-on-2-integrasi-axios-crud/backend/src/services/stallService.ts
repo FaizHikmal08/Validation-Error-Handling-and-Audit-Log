@@ -60,46 +60,59 @@ export class StallService {
     return this.toDto(row);
   }
 
-  async create(input: CreateStallInput, actorId: number): Promise<StallDto> {
-    await this.ensureOwner(input.ownerId);
+async create(input: CreateStallInput, actor: AuthUser): Promise<StallDto> {
+  let ownerId: number;
 
-    const row = await this.stallRepository.create({
-      ownerId: input.ownerId,
-      name: input.name,
-      category: input.category ?? null,
-      location: input.location ?? null,
-      description: input.description ?? null,
-    });
+  if (actor.role === 'admin') {
+    if (input.ownerId === undefined) {
+      throw new AppError(400, 'Admin harus memilih pemilik warung');
+    }
 
-    if (!row) throw new AppError(500, 'Warung gagal dibuat');
+    ownerId = input.ownerId;
+  } else {
+    if (input.ownerId !== undefined && input.ownerId !== actor.id) {
+      throw new ForbiddenError(
+        'Owner hanya bisa membuat warung untuk dirinya sendiri',
+      );
+    }
 
-    await this.auditLogService.record({
-      userId: actorId,
-      action: 'CREATE_STALL',
-      targetTable: 'STALLS',
-      targetId: row.id,
-      metadata: { name: row.name, ownerId: row.ownerId },
-    });
-
-    return this.toDto(row);
+    ownerId = actor.id;
   }
+
+  await this.ensureOwner(ownerId);
+
+  const row = await this.stallRepository.create({
+    ownerId,
+    name: input.name,
+    category: input.category ?? null,
+    location: input.location ?? null,
+    description: input.description ?? null,
+  });
+
+  if (!row) {
+    throw new AppError(500, 'Warung gagal dibuat');
+  }
+
+  await this.auditLogService.record({
+    userId: actor.id,
+    action: 'CREATE_STALL',
+    targetTable: 'STALLS',
+    targetId: row.id,
+    metadata: { name: row.name, ownerId },
+  });
+
+  return this.toDto(row);
+}
 
   async update(id: number, input: UpdateStallInput, user: AuthUser): Promise<StallDto> {
     const current = await this.stallRepository.findById(id);
     if (!current) throw new NotFoundError('Warung tidak ditemukan');
 
     if (user.role !== 'admin') {
-      if (current.ownerId !== user.id) {
-        throw new ForbiddenError('Kamu hanya bisa mengubah warung milikmu sendiri');
-      }
-
-      if (input.ownerId !== undefined) {
-        throw new ForbiddenError('Hanya admin yang dapat memindahkan pemilik warung');
-      }
-    } else if (input.ownerId !== undefined) {
-      await this.ensureOwner(input.ownerId);
-    }
-
+  throw new ForbiddenError(
+    'Hanya admin yang dapat menghapus warung',
+  );
+}
     const row = await this.stallRepository.update({
       id,
       ownerId: input.ownerId ?? current.ownerId,

@@ -24,7 +24,7 @@ import {
   textareaClass,
 } from '../components/ui.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
-import { menuApi, flagsApi, reviewsApi, stallsApi } from '../lib/api.ts';
+import { flagsApi, reviewsApi, stallsApi } from '../lib/api.ts';
 import { formatCurrency, formatDate, formatRating } from '../lib/format.ts';
 import { getApiErrorMessage } from '../lib/http.ts';
 import type { MenuItem, Review, Stall } from '../types/api.ts';
@@ -60,14 +60,20 @@ export function StallDetailPage() {
     setError(null);
 
     try {
-      const [stallData, menuData, reviewData] = await Promise.all([
-        stallsApi.get(stallId),
-        menuApi.list({ stallId }),
-        reviewsApi.byStall(stallId),
-      ]);
-      setStall(stallData);
-      setMenus(menuData);
-      setReviews(reviewData);
+      // Mengambil detail warung dari backend
+const stallData = await stallsApi.get(stallId);
+setStall(stallData);
+
+// Menu belum menjadi fokus Tugas 4
+setMenus([]);
+
+// Mengambil review secara terpisah
+try {
+  const reviewData = await reviewsApi.byStall(stallId);
+  setReviews(reviewData);
+} catch {
+  setReviews([]);
+}
     } catch (loadError) {
       setError(getApiErrorMessage(loadError));
     } finally {

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
@@ -8,6 +9,7 @@ import {
   Store,
   UserRound,
   UtensilsCrossed,
+  ClipboardList,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { buttonClass } from '../lib/buttonClass.ts';
@@ -54,10 +56,17 @@ function PrimaryNav({
       ) : null}
 
       {role === 'admin' ? (
-        <NavLink to="/admin" className={navClass}>
-          <ShieldCheck className="size-4" aria-hidden="true" />
-          Panel Admin
-        </NavLink>
+        <>
+          <NavLink to="/admin" end className={navClass}>
+            <ShieldCheck className="size-4" aria-hidden="true" />
+            Panel Admin
+          </NavLink>
+
+          <NavLink to="/admin/audit-logs" className={navClass}>
+            <ClipboardList className="size-4" aria-hidden="true" />
+            Audit Log
+          </NavLink>
+        </>
       ) : null}
     </nav>
   );

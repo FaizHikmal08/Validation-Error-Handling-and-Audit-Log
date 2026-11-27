@@ -1,9 +1,17 @@
+
 import type { Request, Response } from 'express';
 import { getValidated } from '../middlewares/validate.ts';
 import { getUser } from '../middlewares/auth.ts';
 import type { LoginInput, RegisterInput } from '../schemas/authSchema.ts';
 import { AuthService } from '../services/authService.ts';
 import { clearAuthCookie, setAuthCookie } from '../utils/cookie.ts';
+
+function getAuthAuditInfo(req: Request) {
+  return {
+    ipAddress: req.ip ?? null,
+    userAgent: req.get('user-agent') ?? null,
+  };
+}
 
 export class AuthController {
   private authService: AuthService;
@@ -19,12 +27,20 @@ export class AuthController {
     res.status(201).json({ status: 'success', data: user });
   };
 
-  login = async (_req: Request, res: Response): Promise<void> => {
+  login = async (req: Request, res: Response): Promise<void> => {
     const input = getValidated<LoginInput>(res, 'body');
-    const result = await this.authService.login(input);
+
+    const result = await this.authService.login(
+      input,
+      getAuthAuditInfo(req),
+    );
 
     setAuthCookie(res, result.token);
-    res.status(200).json({ status: 'success', data: result.user });
+
+    res.status(200).json({
+      status: 'success',
+      data: result.user,
+    });
   };
 
   me = async (req: Request, res: Response): Promise<void> => {
@@ -34,7 +50,14 @@ export class AuthController {
     res.status(200).json({ status: 'success', data });
   };
 
-  logout = async (_req: Request, res: Response): Promise<void> => {
+  logout = async (req: Request, res: Response): Promise<void> => {
+    const user = getUser(req);
+
+    await this.authService.recordLogout(
+      user.id,
+      getAuthAuditInfo(req),
+    );
+
     clearAuthCookie(res);
     res.status(204).send();
   };

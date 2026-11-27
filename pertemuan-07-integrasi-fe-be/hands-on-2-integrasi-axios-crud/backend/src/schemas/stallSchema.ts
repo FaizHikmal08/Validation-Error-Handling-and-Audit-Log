@@ -5,9 +5,10 @@ const optionalText = (max: number) => z.string().trim().max(max).nullable().opti
 export const createStallSchema = z
   .object({
     ownerId: z.coerce
-      .number({ invalid_type_error: 'ownerId harus berupa angka' })
-      .int('ownerId harus bilangan bulat')
-      .positive('ownerId harus lebih dari 0'),
+  .number({ invalid_type_error: 'ownerId harus berupa angka' })
+  .int('ownerId harus bilangan bulat')
+  .positive('ownerId harus lebih dari 0')
+  .optional(),
     name: z
       .string({ required_error: 'name wajib diisi' })
       .trim()

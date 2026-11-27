@@ -35,6 +35,7 @@ export function HomePage() {
     setError(null);
 
     try {
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       const result = await stallsApi.list({
         search: search.trim() || undefined,
         category: category.trim() || undefined,
