@@ -1,3 +1,4 @@
+
 import type { Request, Response } from 'express';
 import { getValidated } from '../middlewares/validate.ts';
 import type { AuditQuery } from '../schemas/auditSchema.ts';
@@ -14,6 +15,20 @@ export class AuditLogController {
     const query = getValidated<AuditQuery>(res, 'query');
     const data = await this.auditLogService.list(query);
 
-    res.status(200).json({ status: 'success', data });
+    res.status(200).json({
+      status: 'success',
+      data,
+    });
+  };
+
+  detail = async (req: Request, res: Response): Promise<void> => {
+    const id = Number(req.params.id);
+
+    const data = await this.auditLogService.detail(id);
+
+    res.status(200).json({
+      status: 'success',
+      data,
+    });
   };
 }

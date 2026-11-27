@@ -17,6 +17,39 @@ export const http = axios.create({
 // Saat menerima 401 dari endpoint selain /auth/me, /auth/login, dan
 // /auth/register, kirim event "auth:unauthorized".
 
+http.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 401
+    ) {
+      const url = error.config?.url ?? "";
+      const endpoint = url.split("?")[0];
+
+      const excludedEndpoints = [
+        "/auth/me",
+        "/auth/login",
+        "/auth/register",
+      ];
+
+      const isExcluded = excludedEndpoints.some(
+        (path) => endpoint.endsWith(path)
+      );
+
+      if (!isExcluded) {
+        window.dispatchEvent(
+          new Event("auth:unauthorized")
+        );
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+
+
 const fieldLabels: Record<string, string> = {
   name: 'Nama',
   email: 'Email',

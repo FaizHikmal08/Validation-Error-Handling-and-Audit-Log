@@ -1,8 +1,10 @@
+
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout.tsx';
 import { ProtectedRoute } from './components/ProtectedRoute.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { AdminDashboardPage } from './pages/AdminDashboardPage.tsx';
+import { AuditLogPage } from './pages/AuditLogPage.tsx';
 import { ForbiddenPage } from './pages/ForbiddenPage.tsx';
 import { HomePage } from './pages/HomePage.tsx';
 import { LoginPage } from './pages/LoginPage.tsx';
@@ -39,6 +41,7 @@ function App() {
 
             <Route element={<ProtectedRoute roles={['admin']} />}>
               <Route path="admin" element={<AdminDashboardPage />} />
+              <Route path="admin/audit-logs" element={<AuditLogPage />} />
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />

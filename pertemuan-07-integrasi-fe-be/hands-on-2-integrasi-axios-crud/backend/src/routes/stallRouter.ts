@@ -14,7 +14,7 @@ stallRouter.get('/:id', validate(idParamSchema, 'params'), stallController.get);
 stallRouter.post(
   '/',
   authenticate,
-  authorize('admin'),
+  authorize('admin', 'owner'),
   validate(createStallSchema, 'body'),
   stallController.create,
 );
@@ -29,9 +29,8 @@ stallRouter.put(
 stallRouter.delete(
   '/:id',
   authenticate,
-  authorize('admin', 'owner'),
+  authorize('admin'),
   validate(idParamSchema, 'params'),
   stallController.remove,
 );
-
 export { stallRouter };

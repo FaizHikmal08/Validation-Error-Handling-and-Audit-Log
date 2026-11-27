@@ -1,6 +1,8 @@
 import type {
   ApiResponse,
   AuditLog,
+  AuditLogListData,
+  AuditLogQuery,
   CreateOwnerInput,
   Flag,
   FlagInput,
@@ -26,18 +28,12 @@ import { http } from './http.ts';
 const data = <T>(response: { data: ApiResponse<T> }): T => response.data.data;
 
 export const authApi = {
-  register: (_input: RegisterInput): Promise<User> => {
-    void _input;
-    return Promise.reject(new Error('authApi.register belum diimplementasikan'));
-  },
-  login: (_input: LoginInput): Promise<User> => {
-    void _input;
-    return Promise.reject(new Error('authApi.login belum diimplementasikan'));
-  },
-  me: (): Promise<User> =>
-    Promise.reject(new Error('authApi.me belum diimplementasikan')),
-  logout: (): Promise<void> =>
-    Promise.reject(new Error('authApi.logout belum diimplementasikan')),
+  register: (input: RegisterInput) =>
+    http.post<ApiResponse<User>>('/auth/register', input).then(data),
+  login: (input: LoginInput) =>
+    http.post<ApiResponse<User>>('/auth/login', input).then(data),
+  me: () => http.get<ApiResponse<User>>('/auth/me').then(data),
+  logout: () => http.post('/auth/logout'),
 };
 
 export const profileApi = {
@@ -67,25 +63,25 @@ export const stallsApi = {
   remove: (id: number) => http.delete(`/stalls/${id}`),
 };
 
+
 export const menuApi = {
-  list: (_params?: MenuQuery): Promise<MenuItem[]> => {
-    void _params;
-    return Promise.reject(new Error('menuApi.list belum diimplementasikan'));
-  },
-  create: (_input: MenuInput): Promise<MenuItem> => {
-    void _input;
-    return Promise.reject(new Error('menuApi.create belum diimplementasikan'));
-  },
-  update: (_id: number, _input: MenuInput): Promise<MenuItem> => {
-    void _id;
-    void _input;
-    return Promise.reject(new Error('menuApi.update belum diimplementasikan'));
-  },
-  remove: (_id: number): Promise<void> => {
-    void _id;
-    return Promise.reject(new Error('menuApi.remove belum diimplementasikan'));
-  },
+  // Menampilkan daftar menu
+  list: (params?: MenuQuery): Promise<MenuItem[]> =>
+    http.get<ApiResponse<MenuItem[]>>('/menu', { params }).then(data),
+
+  // Menambahkan menu
+  create: (input: MenuInput): Promise<MenuItem> =>
+    http.post<ApiResponse<MenuItem>>('/menu', input).then(data),
+
+  // Mengubah menu
+  update: (id: number, input: MenuInput): Promise<MenuItem> =>
+    http.put<ApiResponse<MenuItem>>(`/menu/${id}`, input).then(data),
+
+  // Menghapus menu
+  remove: (id: number): Promise<void> =>
+    http.delete(`/menu/${id}`).then(() => undefined),
 };
+
 
 export const reviewsApi = {
   byStall: (stallId: number) =>
@@ -113,6 +109,11 @@ export const flagsApi = {
 };
 
 export const auditApi = {
-  list: (params?: { action?: string; targetTable?: string }) =>
-    http.get<ApiResponse<AuditLog[]>>('/audit-logs', { params }).then(data),
+  list: (params?: AuditLogQuery) =>
+    http
+      .get<ApiResponse<AuditLogListData>>('/audit-logs', { params })
+      .then(data),
+
+  get: (id: number) =>
+    http.get<ApiResponse<AuditLog>>(`/audit-logs/${id}`).then(data),
 };

@@ -103,7 +103,7 @@ export function AdminDashboardPage() {
       setStalls(stallData);
       setFlags(flagData);
       setReviews(reviewData);
-      setAuditLogs(auditData);
+      setAuditLogs(auditData.items);
     } catch (loadError) {
       setError(getApiErrorMessage(loadError));
     } finally {

@@ -57,6 +57,7 @@ export function OwnerDashboardPage() {
   const [modalError, setModalError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [stallModalOpen, setStallModalOpen] = useState(false);
   const [editingMenu, setEditingMenu] = useState<MenuItem | null>(null);
   const [deletingMenu, setDeletingMenu] = useState<MenuItem | null>(null);
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
@@ -140,7 +141,21 @@ export function OwnerDashboardPage() {
       description: stall.description ?? '',
     });
     setModalError(null);
+    setStallModalOpen(true);
   }
+  function openCreateStall(): void {
+  setEditingStall(null);
+
+  setStallForm({
+    name: '',
+    category: '',
+    location: '',
+    description: '',
+  });
+
+  setModalError(null);
+  setStallModalOpen(true);
+}
 
   async function handleMenuSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -225,30 +240,41 @@ export function OwnerDashboardPage() {
     }
   }
 
-  async function handleStallSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
-    if (!editingStall) return;
+  async function handleStallSubmit(
+  event: FormEvent<HTMLFormElement>,
+): Promise<void> {
+  event.preventDefault();
 
-    setIsSaving(true);
-    setModalError(null);
-    setNotice(null);
+  setIsSaving(true);
+  setModalError(null);
+  setNotice(null);
 
-    try {
-      await stallsApi.update(editingStall.id, {
-        name: stallForm.name.trim(),
-        category: stallForm.category.trim() || null,
-        location: stallForm.location.trim() || null,
-        description: stallForm.description.trim() || null,
-      });
-      setEditingStall(null);
+  try {
+    const payload = {
+      name: stallForm.name.trim(),
+      category: stallForm.category.trim() || null,
+      location: stallForm.location.trim() || null,
+      description: stallForm.description.trim() || null,
+    };
+
+    if (editingStall) {
+      await stallsApi.update(editingStall.id, payload);
       setNotice('Warung berhasil diperbarui.');
-      await load();
-    } catch (submitError) {
-      setModalError(getApiErrorMessage(submitError));
-    } finally {
-      setIsSaving(false);
+    } else {
+      await stallsApi.create(payload);
+      setNotice('Warung berhasil dibuat.');
     }
+
+    setStallModalOpen(false);
+    setEditingStall(null);
+    await load();
+  } catch (submitError) {
+    setModalError(getApiErrorMessage(submitError));
+  } finally {
+    setIsSaving(false);
   }
+}
+
 
   function closeMenuModal(): void {
     setMenuModalOpen(false);
@@ -258,6 +284,7 @@ export function OwnerDashboardPage() {
 
   function closeStallModal(): void {
     setEditingStall(null);
+    setStallModalOpen(false);
     setModalError(null);
   }
 
@@ -271,13 +298,22 @@ export function OwnerDashboardPage() {
         eyebrow="Pemilik Warung"
         title="Dashboard Warung"
         description="Kelola menu dan review pada warung milikmu. Perubahan hanya berlaku untuk warung yang kamu kelola."
-        actions={
-          <Button onClick={openCreateMenu} disabled={stalls.length === 0}>
-            <Plus className="size-4" aria-hidden="true" />
-            Tambah Menu
-          </Button>
-        }
-      />
+
+actions={
+  <div className="flex flex-wrap gap-2">
+    <Button variant="secondary" onClick={openCreateStall}>
+      <Plus className="size-4" aria-hidden="true" />
+      Tambah Warung
+    </Button>
+
+    <Button onClick={openCreateMenu} disabled={stalls.length === 0}>
+      <Plus className="size-4" aria-hidden="true" />
+      Tambah Menu
+    </Button>
+  </div>
+}
+/>
+
 
       {error && !hasLoadError ? (
         <div className="mb-4">
@@ -565,7 +601,7 @@ export function OwnerDashboardPage() {
         </Modal>
       ) : null}
 
-      {editingStall ? (
+      {stallModalOpen  ? (
         <Modal
           title="Edit Warung"
           onClose={closeStallModal}
